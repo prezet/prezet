@@ -51,7 +51,9 @@ MD;
     $expectedHtml = <<<'HTML'
 <h1>Heading 1</h1>
 <p>This is a paragraph with <strong>bold</strong> and <em>italic</em> text.</p>
-<p><img x-zoomable srcset="/prezet/img/image-480w.jpg 480w, /prezet/img/image-640w.jpg 640w, /prezet/img/image-768w.jpg 768w, /prezet/img/image-960w.jpg 960w, /prezet/img/image-1536w.jpg 1536w" sizes="92vw, (max-width: 1024px) 92vw, 768px" loading="lazy" decoding="async" fetchpriority="auto" src="/prezet/img//path/to/image.jpg" alt="Image Title" /></p>
+<figure class="prezet-figure"><img x-zoomable srcset="/prezet/img/image-480w.jpg 480w, /prezet/img/image-640w.jpg 640w, /prezet/img/image-768w.jpg 768w, /prezet/img/image-960w.jpg 960w, /prezet/img/image-1536w.jpg 1536w" sizes="92vw, (max-width: 1024px) 92vw, 768px" loading="lazy" decoding="async" fetchpriority="auto" class="prezet-image" src="/prezet/img//path/to/image.jpg" alt="Image Title" />
+<figcaption class="prezet-figcaption">Image Title</figcaption>
+</figure>
 
 HTML;
 
