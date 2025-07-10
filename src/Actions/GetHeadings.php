@@ -61,7 +61,7 @@ class GetHeadings
             if ($nextSibling instanceof DOMElement) {
                 if (strtolower($nextSibling->tagName) == $childTagName) {
                     $id = $this->generateHeadingId($nextSibling->textContent);
-                    
+
                     $children[] = [
                         'id' => $id,
                         'title' => trim($nextSibling->textContent, '#'),
@@ -84,10 +84,10 @@ class GetHeadings
         // Remove any characters that aren't a-zA-Z0-9 and space
         // https://github.com/prezet/prezet/issues/199
         $cleanText = preg_replace('/[^a-zA-Z0-9\s]/', '', $text) ?? '';
-        
+
         // Apply slugify to the cleaned text
         $slug = Str::slug($cleanText, language: null);
-        
-        return 'content-' . $slug;
+
+        return 'content-'.$slug;
     }
 }
