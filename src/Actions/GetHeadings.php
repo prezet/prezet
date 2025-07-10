@@ -37,9 +37,10 @@ class GetHeadings
 
         foreach ($h2Elements as $h2Element) {
             $children = $this->extractChildHeadings($h2Element, 'h3');
+            $id = $this->generateHeadingId($h2Element->textContent);
 
             $result[] = [
-                'id' => 'content-'.Str::slug($h2Element->textContent, language: null),
+                'id' => $id,
                 'title' => trim($h2Element->textContent, '#'),
                 'children' => $children,
             ];
@@ -59,8 +60,10 @@ class GetHeadings
         while ($nextSibling) {
             if ($nextSibling instanceof DOMElement) {
                 if (strtolower($nextSibling->tagName) == $childTagName) {
+                    $id = $this->generateHeadingId($nextSibling->textContent);
+                    
                     $children[] = [
-                        'id' => 'content-'.Str::slug($nextSibling->textContent, language: null),
+                        'id' => $id,
                         'title' => trim($nextSibling->textContent, '#'),
                     ];
                 } elseif (strtolower($nextSibling->tagName) == 'h2') {
@@ -71,5 +74,20 @@ class GetHeadings
         }
 
         return $children;
+    }
+
+    /**
+     * Generate a clean heading ID by removing non-alphanumeric characters (except spaces) and slugifying
+     */
+    private function generateHeadingId(string $text): string
+    {
+        // Remove any characters that aren't a-zA-Z0-9 and space
+        // https://github.com/prezet/prezet/issues/199
+        $cleanText = preg_replace('/[^a-zA-Z0-9\s]/', '', $text) ?? '';
+        
+        // Apply slugify to the cleaned text
+        $slug = Str::slug($cleanText, language: null);
+        
+        return 'content-' . $slug;
     }
 }
