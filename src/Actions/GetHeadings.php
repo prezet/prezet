@@ -84,10 +84,10 @@ class GetHeadings
         // Remove symbols and punctuation, but keep Unicode letters (including accented), numbers, and spaces
         // https://github.com/prezet/prezet/issues/199
         $cleanText = preg_replace('/[^\p{L}\p{N}\s]/u', '', $text) ?? '';
-        
+
         // Apply slugify to the cleaned text
         $slug = Str::slug($cleanText, language: null);
-        
+
         return 'content-'.$slug;
     }
 }
