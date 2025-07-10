@@ -81,13 +81,13 @@ class GetHeadings
      */
     private function generateHeadingId(string $text): string
     {
-        // Remove any characters that aren't a-zA-Z0-9 and space
+        // Remove symbols and punctuation, but keep Unicode letters (including accented), numbers, and spaces
         // https://github.com/prezet/prezet/issues/199
-        $cleanText = preg_replace('/[^a-zA-Z0-9\s]/', '', $text) ?? '';
-
+        $cleanText = preg_replace('/[^\p{L}\p{N}\s]/u', '', $text) ?? '';
+        
         // Apply slugify to the cleaned text
         $slug = Str::slug($cleanText, language: null);
-
+        
         return 'content-'.$slug;
     }
 }
