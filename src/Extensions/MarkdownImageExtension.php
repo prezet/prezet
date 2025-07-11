@@ -48,7 +48,7 @@ class MarkdownImageExtension implements ExtensionInterface
 
     private function configureImageAttributes(Image $node, string $originalUrl): void
     {
-        $node->setUrl(route('prezet.image', $originalUrl, false));
+        $node->setUrl(route('prezet.image', trim($originalUrl, '/'), false));
 
         $srcset = $this->generateSrcset($originalUrl);
         $node->data->set('attributes', [
@@ -69,6 +69,10 @@ class MarkdownImageExtension implements ExtensionInterface
     private function wrapImageInFigure(Image $node): void
     {
         $paragraph = $node->parent();
+
+        if (! $paragraph) {
+            return;
+        }
 
         // Create figure elements
         $openFigure = $this->createOpenFigureElement();
@@ -142,7 +146,11 @@ class MarkdownImageExtension implements ExtensionInterface
 
     private function generateImageUrl(string $url, int $width): string
     {
-        $filename = pathinfo($url, PATHINFO_FILENAME).'-'.$width.'w.'.pathinfo($url, PATHINFO_EXTENSION);
+        $fileInfo = pathinfo($url);
+        $dirname = $fileInfo['dirname'] ?? '.';
+        $extension = $fileInfo['extension'] ?? '';
+
+        $filename = trim($dirname.'/'.$fileInfo['filename'].'-'.$width.'w.'.$extension, '/');
 
         return route('prezet.image', $filename, false);
     }
