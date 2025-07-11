@@ -69,8 +69,8 @@ class MarkdownImageExtension implements ExtensionInterface
     private function wrapImageInFigure(Image $node): void
     {
         $paragraph = $node->parent();
-        
-        if (!$paragraph) {
+
+        if (! $paragraph) {
             return;
         }
 
@@ -150,7 +150,7 @@ class MarkdownImageExtension implements ExtensionInterface
         $dirname = $fileInfo['dirname'] ?? '.';
         $extension = $fileInfo['extension'] ?? '';
 
-        $filename = trim($dirname . '/' . $fileInfo['filename'] . '-' . $width . 'w.' . $extension, '/');
+        $filename = trim($dirname.'/'.$fileInfo['filename'].'-'.$width.'w.'.$extension, '/');
 
         return route('prezet.image', $filename, false);
     }
