@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.3.0](https://github.com/benbjurstrom/prezet/compare/v1.2.0...v1.3.0) - 2025-07-11
+
+### What's Changed
+
+* 205 wrap image in a figure by @benbjurstrom in https://github.com/prezet/prezet/pull/206
+* 199 bug anchor does not work in one case by @benbjurstrom in https://github.com/prezet/prezet/pull/207
+* 202 fix srсsets for nested images by @benbjurstrom in https://github.com/prezet/prezet/pull/208
+
+**Full Changelog**: https://github.com/prezet/prezet/compare/v1.2.0...v1.3.0
+
 ## [v1.2.0](https://github.com/benbjurstrom/prezet/compare/v1.1.0...v1.2.0) - 2025-06-24
 
 ### What's Changed
