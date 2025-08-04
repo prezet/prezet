@@ -84,7 +84,7 @@ class GetImage
         $originalWidth = imagesx($image);
         $originalHeight = imagesy($image);
         $ratio = $size / $originalWidth;
-        $newHeight = $originalHeight * $ratio;
+        $newHeight = (int) round($originalHeight * $ratio);
         $resizedImage = imagecreatetruecolor($size, $newHeight);
         imagecopyresampled($resizedImage, $image, 0, 0, 0, 0, $size, $newHeight, $originalWidth, $originalHeight);
         imagedestroy($image);
