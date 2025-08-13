@@ -3,6 +3,7 @@
 namespace Prezet\Prezet;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Config;
 use League\CommonMark\Output\RenderedContentInterface;
 use Prezet\Prezet\Actions\CreateIndex;
 use Prezet\Prezet\Actions\GenerateOgImage;
@@ -156,5 +157,64 @@ class Prezet
     public static function getDocumentModelFromSlug(string $slug): Document
     {
         return app(GetDocumentModelFromSlug::class)->handle($slug);
+    }
+
+    /**
+     * Get the database strategy (sqlite or shared).
+     */
+    public static function getDatabaseStrategy(): string
+    {
+        return Config::get('prezet.database.strategy', 'sqlite');
+    }
+
+    /**
+     * Check if using dedicated SQLite strategy (default/backward compatible).
+     */
+    public static function isDedicatedSqliteStrategy(): bool
+    {
+        return self::getDatabaseStrategy() === 'sqlite';
+    }
+
+    /**
+     * Check if using shared database strategy (Laravel Cloud compatible).
+     */
+    public static function isSharedDatabaseStrategy(): bool
+    {
+        return self::getDatabaseStrategy() === 'shared';
+    }
+
+    /**
+     * Get the database connection name for Prezet based on strategy.
+     */
+    public static function getDatabaseConnection(): ?string
+    {
+        if (self::isDedicatedSqliteStrategy()) {
+            return 'prezet'; // Use dedicated SQLite connection
+        }
+        
+        // For shared strategy, use configured connection or default
+        $connection = Config::get('prezet.database.connection');
+        return $connection === 'default' ? null : $connection;
+    }
+
+    /**
+     * Get the table prefix for Prezet tables (only used in shared strategy).
+     */
+    public static function getTablePrefix(): string
+    {
+        if (self::isDedicatedSqliteStrategy()) {
+            return ''; // No prefix needed for dedicated SQLite
+        }
+        
+        return Config::get('prezet.database.table_prefix', 'prezet_');
+    }
+
+    /**
+     * Get the full table name with prefix for a given table.
+     */
+    public static function getTableName(string $table): string
+    {
+        $prefix = self::getTablePrefix();
+        return $prefix ? $prefix . $table : $table;
     }
 }

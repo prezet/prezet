@@ -3,6 +3,30 @@
 return [
     /*
     |--------------------------------------------------------------------------
+    | Database Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the database strategy used by Prezet for storing indexed
+    | content metadata. 
+    |
+    | Strategy Options:
+    | - 'sqlite' (default): Uses dedicated SQLite database (current implementation)
+    | - 'shared': Uses Laravel's default database connection with table prefix
+    |
+    | The 'sqlite' strategy is fully backward compatible and recommended for
+    | most use cases. Use 'shared' for Laravel Cloud or when you need to
+    | use a persistent database like MySQL/PostgreSQL.
+    |
+    */
+
+    'database' => [
+        'strategy' => env('PREZET_DB_STRATEGY', 'sqlite'),
+        'connection' => env('PREZET_DB_CONNECTION', null), // For shared strategy: null = default Laravel connection
+        'table_prefix' => env('PREZET_TABLE_PREFIX', 'prezet_'), // Only used in shared strategy
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Configuration
     |--------------------------------------------------------------------------
     |

@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Prezet\Prezet\Prezet;
 
 return new class extends Migration
 {
@@ -11,7 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::connection('prezet')->create('documents', function (Blueprint $table) {
+        $connection = Prezet::getDatabaseConnection();
+        $tableName = Prezet::getTableName('documents');
+
+        Schema::connection($connection)->create($tableName, function (Blueprint $table) {
             $table->id();
             $table->string('key')->index()->nullable()->unique();
             $table->string('slug')->index()->unique();
@@ -30,6 +34,9 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::connection('prezet')->dropIfExists('documents');
+        $connection = Prezet::getDatabaseConnection();
+        $tableName = Prezet::getTableName('documents');
+
+        Schema::connection($connection)->dropIfExists($tableName);
     }
 };

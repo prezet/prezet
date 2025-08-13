@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Prezet\Prezet\Data\FrontmatterData;
 use Prezet\Prezet\Database\Factories\DocumentFactory;
+use Prezet\Prezet\Prezet;
 
 /**
  * @property string $key
@@ -30,11 +31,22 @@ class Document extends Model
     use HasFactory;
 
     /**
-     * The connection name for the model.
-     *
-     * @var string|null
+     * Get the database connection name for the model.
+     * Uses 'prezet' for SQLite strategy, or configured connection for shared strategy.
      */
-    protected $connection = 'prezet';
+    public function getConnectionName(): ?string
+    {
+        return Prezet::getDatabaseConnection();
+    }
+
+    /**
+     * Get the table associated with the model.
+     * Uses 'documents' for SQLite strategy, or prefixed table for shared strategy.
+     */
+    public function getTable(): string
+    {
+        return Prezet::getTableName('documents');
+    }
 
     protected $guarded = [];
 
@@ -66,7 +78,7 @@ class Document extends Model
      */
     public function tags(): BelongsToMany
     {
-        return $this->belongsToMany(Tag::class, 'document_tags');
+        return $this->belongsToMany(Tag::class, Prezet::getTableName('document_tags'));
     }
 
     /**

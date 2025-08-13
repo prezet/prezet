@@ -7,22 +7,39 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Prezet\Prezet\Prezet;
 
 class CreateIndex
 {
     public function handle(): void
     {
+        if (Prezet::isDedicatedSqliteStrategy()) {
+            $this->handleSqliteStrategy();
+        } else {
+            $this->handleSharedDatabaseStrategy();
+        }
+    }
+
+    /**
+     * Handle SQLite strategy (original implementation - backward compatible).
+     */
+    protected function handleSqliteStrategy(): void
+    {
         $originalPath = Config::string('database.connections.prezet.database');
         $tempPath = sys_get_temp_dir().'/prezet_'.uniqid().'.sqlite';
 
         try {
-            Log::info('Creating new prezet index', ['temp_path' => $tempPath]);
+            Log::info('Creating new prezet SQLite index', [
+                'strategy' => 'sqlite',
+                'temp_path' => $tempPath,
+                'target_path' => $originalPath
+            ]);
 
             touch($tempPath);
             Config::set('database.connections.prezet.database', $tempPath);
             DB::purge('prezet');
 
-            $this->runMigrations($tempPath);
+            $this->runSqliteMigrations($tempPath);
 
             // Ensure the SQLite connection is properly closed to release locks
             DB::connection('prezet')->disconnect();
@@ -43,9 +60,9 @@ class CreateIndex
                 throw new \RuntimeException("Failed to move database from {$tempPath} to {$originalPath} after {$maxRetries} retries.");
             }
 
-            Log::info('Successfully created new prezet index');
+            Log::info('Successfully created new prezet SQLite index');
         } catch (\Exception $e) {
-            Log::error('Failed to create prezet index', [
+            Log::error('Failed to create prezet SQLite index', [
                 'error' => $e->getMessage(),
                 'temp_path' => $tempPath,
                 'target_path' => $originalPath,
@@ -59,7 +76,38 @@ class CreateIndex
                 unlink($tempPath);
             }
         }
+    }
 
+    /**
+     * Handle shared database strategy (Laravel Cloud compatible).
+     */
+    protected function handleSharedDatabaseStrategy(): void
+    {
+        $connection = Prezet::getDatabaseConnection();
+        $tablePrefix = Prezet::getTablePrefix();
+
+        try {
+            Log::info('Creating new prezet shared database index', [
+                'strategy' => 'shared',
+                'connection' => $connection ?? 'default',
+                'table_prefix' => $tablePrefix
+            ]);
+
+            // Drop existing Prezet tables if they exist
+            $this->dropExistingPrezetTables($connection);
+
+            // Run fresh migrations
+            $this->runSharedDatabaseMigrations($connection);
+
+            Log::info('Successfully created new prezet shared database index');
+        } catch (\Exception $e) {
+            Log::error('Failed to create prezet shared database index', [
+                'error' => $e->getMessage(),
+                'connection' => $connection ?? 'default',
+                'table_prefix' => $tablePrefix,
+            ]);
+            throw $e;
+        }
     }
 
     protected function ensureDirectoryExists(string $path): void
@@ -72,7 +120,10 @@ class CreateIndex
         }
     }
 
-    protected function runMigrations(string $path): void
+    /**
+     * Run migrations for SQLite strategy.
+     */
+    protected function runSqliteMigrations(string $path): void
     {
         if (! Schema::connection('prezet')->hasTable('migrations')) {
             Schema::connection('prezet')->create('migrations', function ($table) {
@@ -91,7 +142,46 @@ class CreateIndex
         ]);
 
         if ($result !== 0) {
-            throw new \RuntimeException('Migration failed: '.Artisan::output());
+            throw new \RuntimeException('SQLite migration failed: '.Artisan::output());
+        }
+    }
+
+    /**
+     * Run migrations for shared database strategy.
+     */
+    protected function runSharedDatabaseMigrations(?string $connection): void
+    {
+        $databaseOption = $connection ? ['--database' => $connection] : [];
+
+        $result = Artisan::call('migrate', array_merge([
+            '--path' => base_path('vendor/prezet/prezet/database/migrations'),
+            '--realpath' => true,
+            '--no-interaction' => true,
+            '--force' => true,
+        ], $databaseOption));
+
+        if ($result !== 0) {
+            throw new \RuntimeException('Shared database migration failed: '.Artisan::output());
+        }
+    }
+
+    /**
+     * Drop existing Prezet tables for fresh creation.
+     */
+    protected function dropExistingPrezetTables(?string $connection): void
+    {
+        $tables = [
+            Prezet::getTableName('document_tags'),
+            Prezet::getTableName('headings'),
+            Prezet::getTableName('documents'),
+            Prezet::getTableName('tags'),
+        ];
+
+        foreach ($tables as $table) {
+            if (Schema::connection($connection)->hasTable($table)) {
+                Schema::connection($connection)->dropIfExists($table);
+                Log::debug("Dropped existing table: {$table}");
+            }
         }
     }
 }

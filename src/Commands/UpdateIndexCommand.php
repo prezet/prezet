@@ -11,7 +11,7 @@ class UpdateIndexCommand extends Command
 {
     public $signature = 'prezet:index {--fresh : Fresh recreates the database}';
 
-    public $description = 'Updates the prezet.sqlite file. Use --fresh to recreate the database.';
+    public $description = 'Updates the prezet index. Use --fresh to recreate the database/tables.';
 
     public function handle(): int
     {

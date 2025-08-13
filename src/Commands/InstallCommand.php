@@ -5,6 +5,7 @@ namespace Prezet\Prezet\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Process;
+use Prezet\Prezet\Prezet;
 
 class InstallCommand extends Command
 {
@@ -99,8 +100,8 @@ class InstallCommand extends Command
     {
         try {
             $this->addStorageDisk();
-            $this->addDatabase();
             $this->publishConfig();
+            $this->setupDatabase();
 
             // run in separate process so config changes above are applied
             Process::run('php artisan prezet:index --fresh');
@@ -114,19 +115,48 @@ class InstallCommand extends Command
         }
     }
 
-    protected function addDatabase(): void
+    protected function setupDatabase(): void
+    {
+        // Check environment variables first, then config
+        $strategy = env('PREZET_DB_STRATEGY', config('prezet.database.strategy', 'sqlite'));
+
+        // Auto-detect Laravel Cloud environment
+        if ($this->isLaravelCloudEnvironment()) {
+            $this->info('Laravel Cloud environment detected!');
+            if ($strategy === 'sqlite') {
+                $this->warn('SQLite is not recommended for Laravel Cloud due to ephemeral filesystem.');
+                if ($this->confirm('Would you like to use shared database strategy instead?', true)) {
+                    $strategy = 'shared';
+                }
+            }
+        }
+
+        if ($strategy === 'sqlite') {
+            $this->setupSqliteDatabase();
+        } else {
+            $this->setupSharedDatabase();
+        }
+    }
+
+    protected function isLaravelCloudEnvironment(): bool
+    {
+        return env('LARAVEL_CLOUD') !== null ||
+               str_contains(env('APP_URL', ''), '.laravel.app') ||
+               env('SERVER_SOFTWARE') === 'Laravel Cloud';
+    }
+
+    protected function setupSqliteDatabase(): void
     {
         if (config('database.connections.prezet')) {
-            $this->warn('Skipping database setup: the prezet database connection already exists.');
-
+            $this->warn('Skipping SQLite database setup: the prezet database connection already exists.');
             return;
         }
-        $this->info('Adding prezet database');
+
+        $this->info('Setting up SQLite database for Prezet');
         $configFile = config_path('database.php');
         $config = file_get_contents($configFile);
         if (! $config) {
             $this->error('Failed to read database config file: '.$configFile);
-
             return;
         }
 
@@ -137,6 +167,26 @@ class InstallCommand extends Command
             $disksPosition += strlen("'connections' => [");
             $newConfig = substr_replace($config, $diskConfig, $disksPosition, 0);
             file_put_contents($configFile, $newConfig);
+        }
+    }
+
+    protected function setupSharedDatabase(): void
+    {
+        $connection = config('prezet.database.connection');
+        $tablePrefix = config('prezet.database.table_prefix', 'prezet_');
+
+        $this->info('Setting up shared database for Prezet');
+        $this->info("Using connection: " . ($connection ?? 'default'));
+        $this->info("Table prefix: {$tablePrefix}");
+
+        // For shared database, we don't need to modify database.php
+        // The migrations will create tables in the default/configured connection
+        $this->warn('Prezet will use your default database connection with table prefix.');
+
+        if ($this->confirm('Continue with shared database setup?', true)) {
+            $this->info('Shared database setup completed. Tables will be created during index creation.');
+        } else {
+            throw new \Exception('Installation cancelled by user.');
         }
     }
 

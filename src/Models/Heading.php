@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
+use Prezet\Prezet\Prezet;
 
 /**
  * @property int $id
@@ -16,7 +17,23 @@ use Illuminate\Support\Str;
  */
 class Heading extends Model
 {
-    protected $connection = 'prezet';
+    /**
+     * Get the database connection name for the model.
+     * Uses 'prezet' for SQLite strategy, or configured connection for shared strategy.
+     */
+    public function getConnectionName(): ?string
+    {
+        return Prezet::getDatabaseConnection();
+    }
+
+    /**
+     * Get the table associated with the model.
+     * Uses 'headings' for SQLite strategy, or prefixed table for shared strategy.
+     */
+    public function getTable(): string
+    {
+        return Prezet::getTableName('headings');
+    }
 
     protected $guarded = [];
 

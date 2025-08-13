@@ -166,20 +166,64 @@ class UpdateIndex
 
     private function ensureDatabaseExists(): void
     {
+        if (Prezet::isDedicatedSqliteStrategy()) {
+            $this->ensureSqliteDatabaseExists();
+        } else {
+            $this->ensureSharedDatabaseExists();
+        }
+    }
+
+    /**
+     * Ensure SQLite database file exists and has required tables.
+     */
+    private function ensureSqliteDatabaseExists(): void
+    {
         $dbPath = Config::string('database.connections.prezet.database');
 
         if (! file_exists($dbPath)) {
             throw new \RuntimeException(
-                "Prezet database not found at $dbPath.\n".
+                "Prezet SQLite database not found at $dbPath.\n".
                 "Please run 'php artisan prezet:index --fresh' to create the database."
             );
         }
 
         if (! Schema::connection('prezet')->hasTable('documents')) {
             throw new \RuntimeException(
-                "Prezet database exists but is missing the 'documents' table.\n".
+                "Prezet SQLite database exists but is missing the 'documents' table.\n".
                 "Please run 'php artisan prezet:index --fresh' to create the database."
             );
+        }
+    }
+
+    /**
+     * Ensure shared database has required Prezet tables.
+     */
+    private function ensureSharedDatabaseExists(): void
+    {
+        $connection = Prezet::getDatabaseConnection();
+        $documentsTable = Prezet::getTableName('documents');
+
+        if (! Schema::connection($connection)->hasTable($documentsTable)) {
+            throw new \RuntimeException(
+                "Prezet shared database is missing the '{$documentsTable}' table.\n".
+                "Please run 'php artisan prezet:index --fresh' to create the tables."
+            );
+        }
+
+        // Check other required tables
+        $requiredTables = [
+            'tags' => Prezet::getTableName('tags'),
+            'headings' => Prezet::getTableName('headings'),
+            'document_tags' => Prezet::getTableName('document_tags'),
+        ];
+
+        foreach ($requiredTables as $baseName => $tableName) {
+            if (! Schema::connection($connection)->hasTable($tableName)) {
+                throw new \RuntimeException(
+                    "Prezet shared database is missing the '{$tableName}' table.\n".
+                    "Please run 'php artisan prezet:index --fresh' to create the tables."
+                );
+            }
         }
     }
 }
