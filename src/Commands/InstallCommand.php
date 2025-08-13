@@ -5,6 +5,9 @@ namespace Prezet\Prezet\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Process;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 use Prezet\Prezet\Prezet;
 
 class InstallCommand extends Command
@@ -117,20 +120,54 @@ class InstallCommand extends Command
 
     protected function setupDatabase(): void
     {
-        // Check environment variables first, then config
+        // Check for existing Prezet installation
+        $hasExistingPrezet = config('database.connections.prezet') !== null;
         $strategy = env('PREZET_DB_STRATEGY', config('prezet.database.strategy', 'sqlite'));
-
-        // Auto-detect Laravel Cloud environment
-        if ($this->isLaravelCloudEnvironment()) {
-            $this->info('Laravel Cloud environment detected!');
-            if ($strategy === 'sqlite') {
-                $this->warn('SQLite is not recommended for Laravel Cloud due to ephemeral filesystem.');
-                if ($this->confirm('Would you like to use shared database strategy instead?', true)) {
-                    $strategy = 'shared';
-                }
+        
+        // If no strategy specified in env, ask the user
+        if (!env('PREZET_DB_STRATEGY')) {
+            $this->info('');
+            $this->info('🗃️  Database Strategy Configuration');
+            $this->info('Prezet needs to store indexed content metadata in a database.');
+            $this->info('');
+            
+            if ($hasExistingPrezet) {
+                $this->warn('⚠️  Existing SQLite Prezet installation detected.');
+                $this->info('You can continue with SQLite or migrate to shared database.');
+                $this->info('');
             }
+            
+            // Auto-detect Laravel Cloud environment
+            if ($this->isLaravelCloudEnvironment()) {
+                $this->error('🌩️  Laravel Cloud environment detected!');
+                $this->warn('SQLite files don\'t persist on Laravel Cloud due to ephemeral filesystem.');
+                $this->info('Shared database strategy is recommended for cloud deployment.');
+                $this->info('');
+            }
+            
+            $this->info('Available strategies:');
+            $this->info('1. SQLite (default) - Uses dedicated SQLite database file');
+            $this->info('   ✅ Fast performance, zero configuration');
+            $this->info('   ✅ Perfect for traditional hosting, VPS, local development');
+            $this->info('   ❌ Not suitable for Laravel Cloud or containerized deployments');
+            $this->info('');
+            $this->info('2. Shared Database - Uses your Laravel app\'s main database');
+            $this->info('   ✅ Compatible with Laravel Cloud and all cloud platforms');
+            $this->info('   ✅ Works with MySQL, PostgreSQL, and all Laravel-supported databases');
+            $this->info('   ✅ Tables are prefixed (prezet_) to avoid conflicts');
+            $this->info('   ⚠️  Slightly more database overhead');
+            $this->info('');
+            
+            $defaultChoice = $this->isLaravelCloudEnvironment() ? 'shared' : 'sqlite';
+            $strategy = $this->choice(
+                'Which database strategy would you like to use?',
+                ['sqlite', 'shared'],
+                $defaultChoice
+            );
         }
-
+        
+        $this->info("Setting up Prezet with {$strategy} database strategy...");
+        
         if ($strategy === 'sqlite') {
             $this->setupSqliteDatabase();
         } else {
@@ -174,20 +211,119 @@ class InstallCommand extends Command
     {
         $connection = config('prezet.database.connection');
         $tablePrefix = config('prezet.database.table_prefix', 'prezet_');
-
+        
         $this->info('Setting up shared database for Prezet');
         $this->info("Using connection: " . ($connection ?? 'default'));
         $this->info("Table prefix: {$tablePrefix}");
-
-        // For shared database, we don't need to modify database.php
-        // The migrations will create tables in the default/configured connection
-        $this->warn('Prezet will use your default database connection with table prefix.');
-
-        if ($this->confirm('Continue with shared database setup?', true)) {
-            $this->info('Shared database setup completed. Tables will be created during index creation.');
-        } else {
-            throw new \Exception('Installation cancelled by user.');
+        $this->info('');
+        
+        // Verify database connection works
+        try {
+            DB::connection($connection)->getPdo();
+            $this->info('✅ Database connection verified');
+        } catch (\Exception $e) {
+            $this->error('❌ Database connection failed: ' . $e->getMessage());
+            throw new \Exception('Database connection failed. Please check your database configuration.');
         }
+        
+        // Create tables by running migrations
+        $this->info('Creating Prezet tables...');
+        
+        try {
+            // Use manual table creation for better reliability
+            $this->createTablesManually($connection);
+            $this->info('✅ Prezet tables created successfully');
+            
+            // Verify tables were created
+            $requiredTables = [
+                $tablePrefix . 'documents',
+                $tablePrefix . 'tags', 
+                $tablePrefix . 'headings',
+                $tablePrefix . 'document_tags'
+            ];
+            
+            foreach ($requiredTables as $table) {
+                if (!Schema::connection($connection)->hasTable($table)) {
+                    $this->error("❌ Missing table: {$table}");
+                    throw new \Exception("Failed to create table: {$table}");
+                } else {
+                    $this->info("✅ Verified table: {$table}");
+                }
+            }
+            
+            $this->info('✅ All Prezet tables verified');
+            $this->info('Shared database setup completed successfully!');
+            
+        } catch (\Exception $e) {
+            $this->error('❌ Failed to create Prezet tables: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+    
+    protected function runSharedDatabaseMigrations(?string $connection): void
+    {
+        // Use Artisan migrate command with the Prezet migrations
+        $databaseOption = $connection ? ['--database' => $connection] : [];
+
+        $result = Artisan::call('migrate', array_merge([
+            '--path' => 'vendor/prezet/prezet/database/migrations',
+            '--realpath' => true,
+            '--no-interaction' => true,
+            '--force' => true,
+        ], $databaseOption));
+
+        if ($result !== 0) {
+            // If migrations fail, create tables manually
+            $this->warn('Standard migrations failed, creating tables manually...');
+            $this->createTablesManually($connection);
+        }
+    }
+    
+    protected function createTablesManually(?string $connection): void
+    {
+        $tablePrefix = config('prezet.database.table_prefix', 'prezet_');
+        
+        // Create documents table
+        $this->info("Creating table: {$tablePrefix}documents");
+        Schema::connection($connection)->create($tablePrefix . 'documents', function ($table) {
+            $table->id();
+            $table->string('key')->index()->nullable()->unique();
+            $table->string('slug')->index()->unique();
+            $table->string('filepath')->index()->unique();
+            $table->string('category')->index()->nullable();
+            $table->string('content_type')->index();
+            $table->boolean('draft')->default(false)->index();
+            $table->char('hash', 32)->index()->unique();
+            $table->json('frontmatter');
+            $table->timestampTz('created_at')->index();
+            $table->timestampTz('updated_at')->index();
+            $table->index(['filepath', 'hash']);
+        });
+        
+        // Create tags table
+        $this->info("Creating table: {$tablePrefix}tags");
+        Schema::connection($connection)->create($tablePrefix . 'tags', function ($table) {
+            $table->id();
+            $table->string('name')->unique();
+        });
+        
+        // Create headings table
+        $this->info("Creating table: {$tablePrefix}headings");
+        Schema::connection($connection)->create($tablePrefix . 'headings', function ($table) use ($tablePrefix) {
+            $table->id();
+            $table->foreignId('document_id')->constrained($tablePrefix . 'documents')->onDelete('cascade');
+            $table->string('text');
+            $table->unsignedTinyInteger('level');
+            $table->string('section');
+        });
+        
+        // Create document_tags pivot table
+        $this->info("Creating table: {$tablePrefix}document_tags");
+        Schema::connection($connection)->create($tablePrefix . 'document_tags', function ($table) use ($tablePrefix) {
+            $table->id();
+            $table->foreignId('document_id')->index()->constrained($tablePrefix . 'documents');
+            $table->foreignId('tag_id')->index()->constrained($tablePrefix . 'tags');
+        });
     }
 
     protected function addStorageDisk(): void

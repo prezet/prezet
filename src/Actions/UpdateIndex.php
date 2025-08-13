@@ -204,10 +204,16 @@ class UpdateIndex
         $documentsTable = Prezet::getTableName('documents');
 
         if (! Schema::connection($connection)->hasTable($documentsTable)) {
-            throw new \RuntimeException(
-                "Prezet shared database is missing the '{$documentsTable}' table.\n".
-                "Please run 'php artisan prezet:index --fresh' to create the tables."
-            );
+            // Try to create tables automatically
+            $this->createMissingTables($connection);
+            
+            // If still missing, throw error
+            if (! Schema::connection($connection)->hasTable($documentsTable)) {
+                throw new \RuntimeException(
+                    "Prezet shared database is missing the '{$documentsTable}' table.\n".
+                    "Please run 'php artisan prezet:index --fresh' to create the tables."
+                );
+            }
         }
 
         // Check other required tables
@@ -224,6 +230,22 @@ class UpdateIndex
                     "Please run 'php artisan prezet:index --fresh' to create the tables."
                 );
             }
+        }
+    }
+    
+    /**
+     * Create missing tables for shared database strategy.
+     */
+    private function createMissingTables(?string $connection): void
+    {
+        try {
+            // Use the same table creation logic as CreateIndex
+            $createIndex = new \Prezet\Prezet\Actions\CreateIndex();
+            $method = new \ReflectionMethod($createIndex, 'createSharedDatabaseTables');
+            $method->setAccessible(true);
+            $method->invoke($createIndex, $connection);
+        } catch (\Exception $e) {
+            // Silently fail - the main error will be thrown by the caller
         }
     }
 }

@@ -96,8 +96,8 @@ class CreateIndex
             // Drop existing Prezet tables if they exist
             $this->dropExistingPrezetTables($connection);
 
-            // Run fresh migrations
-            $this->runSharedDatabaseMigrations($connection);
+            // Create tables manually (since migration timestamps cause issues)
+            $this->createSharedDatabaseTables($connection);
 
             Log::info('Successfully created new prezet shared database index');
         } catch (\Exception $e) {
@@ -147,22 +147,51 @@ class CreateIndex
     }
 
     /**
-     * Run migrations for shared database strategy.
+     * Create tables directly for shared database strategy.
      */
-    protected function runSharedDatabaseMigrations(?string $connection): void
+    protected function createSharedDatabaseTables(?string $connection): void
     {
-        $databaseOption = $connection ? ['--database' => $connection] : [];
+        $tablePrefix = Prezet::getTablePrefix();
 
-        $result = Artisan::call('migrate', array_merge([
-            '--path' => base_path('vendor/prezet/prezet/database/migrations'),
-            '--realpath' => true,
-            '--no-interaction' => true,
-            '--force' => true,
-        ], $databaseOption));
+        // Create documents table
+        Schema::connection($connection)->create($tablePrefix . 'documents', function ($table) {
+            $table->id();
+            $table->string('key')->index()->nullable()->unique();
+            $table->string('slug')->index()->unique();
+            $table->string('filepath')->index()->unique();
+            $table->string('category')->index()->nullable();
+            $table->string('content_type')->index();
+            $table->boolean('draft')->default(false)->index();
+            $table->char('hash', 32)->index()->unique();
+            $table->json('frontmatter');
+            $table->timestampTz('created_at')->index();
+            $table->timestampTz('updated_at')->index();
+            $table->index(['filepath', 'hash']);
+        });
 
-        if ($result !== 0) {
-            throw new \RuntimeException('Shared database migration failed: '.Artisan::output());
-        }
+        // Create tags table
+        Schema::connection($connection)->create($tablePrefix . 'tags', function ($table) {
+            $table->id();
+            $table->string('name')->unique();
+        });
+
+        // Create headings table
+        Schema::connection($connection)->create($tablePrefix . 'headings', function ($table) use ($tablePrefix) {
+            $table->id();
+            $table->foreignId('document_id')->constrained($tablePrefix . 'documents')->onDelete('cascade');
+            $table->string('text');
+            $table->unsignedTinyInteger('level');
+            $table->string('section');
+        });
+
+        // Create document_tags pivot table
+        Schema::connection($connection)->create($tablePrefix . 'document_tags', function ($table) use ($tablePrefix) {
+            $table->id();
+            $table->foreignId('document_id')->index()->constrained($tablePrefix . 'documents');
+            $table->foreignId('tag_id')->index()->constrained($tablePrefix . 'tags');
+        });
+
+        Log::debug('Created all Prezet tables with prefix: ' . $tablePrefix);
     }
 
     /**
