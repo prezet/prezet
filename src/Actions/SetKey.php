@@ -19,8 +19,8 @@ class SetKey
             throw new FrontmatterMissingException($filepath);
         }
 
-        $fm = $content->getFrontMatter();
-        if (! $fm || ! is_array($fm)) {
+        $fm = $this->normalizeFrontmatter($content->getFrontMatter());
+        if (! $fm) {
             throw new FrontmatterMissingException($filepath);
         }
 
@@ -31,5 +31,27 @@ class SetKey
         // Save the updated markdown
         $storage = Storage::disk(Prezet::getPrezetDisk());
         $storage->put($filepath, $newMd);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function normalizeFrontmatter(mixed $frontmatter): ?array
+    {
+        if (! is_array($frontmatter)) {
+            return null;
+        }
+
+        $normalized = [];
+
+        foreach ($frontmatter as $key => $value) {
+            if (! is_string($key)) {
+                return null;
+            }
+
+            $normalized[$key] = $value;
+        }
+
+        return $normalized;
     }
 }

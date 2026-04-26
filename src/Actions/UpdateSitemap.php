@@ -20,11 +20,9 @@ class UpdateSitemap
         $sitemap = Sitemap::create();
 
         foreach ($docs as $doc) {
-            if (! $doc instanceof Document) {
-                throw new \Exception('Invalid document');
-            }
-
             $sitemapUrl = config('prezet.sitemap.origin');
+            $sitemapUrl = is_string($sitemapUrl) ? $sitemapUrl : '';
+
             $sitemap->add(Sitemap::url($sitemapUrl.route('prezet.show', $doc->slug, false))
                 ->setLastModificationDate($doc->updated_at)
                 ->setChangeFrequency(Sitemap::CHANGE_FREQUENCY_WEEKLY)

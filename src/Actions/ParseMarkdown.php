@@ -8,7 +8,7 @@ use League\CommonMark\Exception\CommonMarkException;
 use League\CommonMark\Extension\ExtensionInterface;
 use League\CommonMark\MarkdownConverter;
 use League\CommonMark\Output\RenderedContentInterface;
-use Phiki\CommonMark\PhikiExtension;
+use Phiki\Adapters\CommonMark\PhikiExtension;
 use Phiki\Theme\Theme;
 use Prezet\Prezet\Exceptions\InvalidConfigurationException;
 use Prezet\Prezet\Extensions\MarkdownBladeExtension;
@@ -25,7 +25,7 @@ class ParseMarkdown
             throw new InvalidConfigurationException('prezet.commonmark.config', $config, 'is not an array');
         }
 
-        $environment = new Environment($config);
+        $environment = new Environment($this->normalizeCommonMarkConfig($config));
         $extensions = $this->getExtensions();
 
         foreach ($extensions as $extension) {
@@ -33,7 +33,6 @@ class ParseMarkdown
                 $phikiConfig = $this->getPhikiConfig();
                 $environment->addExtension(new PhikiExtension(
                     $phikiConfig['theme'],
-                    withWrapper: $phikiConfig['with_wrapper'],
                     withGutter: $phikiConfig['with_gutter']
                 ));
             } else {
@@ -48,6 +47,19 @@ class ParseMarkdown
         MarkdownBladeExtension::$allowBladeForNextDocument = false;
 
         return $result;
+    }
+
+    /**
+     * @param  array<mixed, mixed>  $config
+     * @return array<mixed, mixed>
+     */
+    protected function normalizeCommonMarkConfig(array $config): array
+    {
+        if (isset($config['phiki']) && is_array($config['phiki'])) {
+            unset($config['phiki']['with_wrapper']);
+        }
+
+        return $config;
     }
 
     /**
@@ -76,7 +88,7 @@ class ParseMarkdown
     }
 
     /**
-     * @return array{theme: string|array<mixed>|Theme, with_wrapper: bool, with_gutter: bool}
+     * @return array{theme: string|array<mixed>|Theme, with_gutter: bool}
      *
      * @throws InvalidConfigurationException
      */
@@ -92,11 +104,6 @@ class ParseMarkdown
             throw new InvalidConfigurationException('prezet.commonmark.config.phiki.theme', $theme, 'is not a string, array, or Phiki theme');
         }
 
-        $withWrapper = $config['with_wrapper'] ?? null;
-        if (! is_bool($withWrapper)) {
-            throw new InvalidConfigurationException('prezet.commonmark.config.phiki.with_wrapper', $withWrapper, 'is not a boolean');
-        }
-
         $withGutter = $config['with_gutter'] ?? null;
         if (! is_bool($withGutter)) {
             throw new InvalidConfigurationException('prezet.commonmark.config.phiki.with_gutter', $withGutter, 'is not a boolean');
@@ -104,7 +111,6 @@ class ParseMarkdown
 
         return [
             'theme' => $theme,
-            'with_wrapper' => $withWrapper,
             'with_gutter' => $withGutter,
         ];
     }

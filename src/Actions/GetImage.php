@@ -81,6 +81,10 @@ class GetImage
 
     private function resizeImage(GdImage $image, int $size): GdImage
     {
+        if ($size < 1) {
+            throw new InvalidConfigurationException('prezet.image.widths', $size, 'must contain positive integers');
+        }
+
         $originalWidth = imagesx($image);
         $originalHeight = imagesy($image);
         $ratio = $size / $originalWidth;

@@ -41,7 +41,17 @@ class ParseFrontmatter
             throw new FrontmatterMissingException($filePath);
         }
 
-        return $frontmatter;
+        $normalized = [];
+
+        foreach ($frontmatter as $key => $value) {
+            if (! is_string($key)) {
+                throw new FrontmatterException('Frontmatter keys must be strings', $filePath);
+            }
+
+            $normalized[$key] = $value;
+        }
+
+        return $normalized;
     }
 
     /**

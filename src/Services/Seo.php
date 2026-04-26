@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Prezet\Prezet\Services;
 
 use Closure;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -67,11 +66,13 @@ class Seo
      */
     public function all(): array
     {
-        /** @var Collection<string, string|null> $collection */
-        $collection = collect($this->getKeys())
-            ->mapWithKeys(fn (string $key) => [$key => $this->get($key)]);
+        $values = [];
 
-        return $collection->toArray();
+        foreach ($this->getKeys() as $key) {
+            $values[$key] = $this->get($key);
+        }
+
+        return $values;
     }
 
     /**
@@ -81,8 +82,7 @@ class Seo
      */
     protected function getKeys(): array
     {
-        /** @var Collection<int, string> $collection */
-        $collection = collect([
+        $keys = collect([
             'site', 'title', 'image', 'description', 'url', 'type', 'locale',
             'twitter.creator', 'twitter.site', 'twitter.title', 'twitter.image', 'twitter.description',
         ])
@@ -90,7 +90,13 @@ class Seo
             ->merge(array_keys($this->values))
             ->unique();
 
-        return $collection->toArray();
+        $strings = [];
+
+        foreach ($keys as $key) {
+            $strings[] = $key;
+        }
+
+        return $strings;
     }
 
     /**
@@ -131,12 +137,13 @@ class Seo
                 $this->set($k, $v);
             }
 
-            /** @var Collection<string, string|null> $collection */
-            $collection = collect($key)
-                ->keys()
-                ->mapWithKeys(fn (string $k) => [$k => $this->get($k)]);
+            $values = [];
 
-            return $collection->toArray();
+            foreach (array_keys($key) as $k) {
+                $values[$k] = $this->get($k);
+            }
+
+            return $values;
         }
 
         $this->values[$key] = $value;
@@ -224,7 +231,7 @@ class Seo
      */
     public function hasRawTag(string $key): bool
     {
-        return isset($this->tags[$key]) && ($this->tags[$key] !== null);
+        return isset($this->tags[$key]);
     }
 
     /**
@@ -270,9 +277,7 @@ class Seo
     {
         if (is_array($key)) {
             foreach ($key as $k => $v) {
-                if (is_string($k)) {
-                    $this->meta($k, $v);
-                }
+                $this->meta($k, $v);
             }
 
             return $this;
@@ -284,9 +289,48 @@ class Seo
             return is_string($result) || is_null($result) ? $result : null;
         }
 
-        data_set($this->meta, $key, $value);
+        $this->setMetaValue($key, $value);
 
         return $this;
+    }
+
+    /**
+     * @param  string|array<mixed>  $value
+     */
+    private function setMetaValue(string $key, string|array $value): void
+    {
+        $this->meta = $this->withMetaValue($this->meta, explode('.', $key), $value);
+    }
+
+    /**
+     * @param  array<string, mixed>  $meta
+     * @param  array<int, string>  $segments
+     * @param  string|array<mixed>  $value
+     * @return array<string, mixed>
+     */
+    private function withMetaValue(array $meta, array $segments, string|array $value): array
+    {
+        $segment = array_shift($segments);
+
+        if (! is_string($segment) || $segment === '') {
+            return $meta;
+        }
+
+        if ($segments === []) {
+            $meta[$segment] = $value;
+
+            return $meta;
+        }
+
+        $child = $meta[$segment] ?? [];
+
+        if (! is_array($child)) {
+            $child = [];
+        }
+
+        $meta[$segment] = $this->withMetaValue($child, $segments, $value);
+
+        return $meta;
     }
 
     /**
@@ -302,6 +346,10 @@ class Seo
     {
         // Two arguments indicate that we're setting a value, e.g. `@seo('title', 'foo')
         if (count($args) === 2 && is_string($args[0])) {
+            if (! is_string($args[1]) && ! $args[1] instanceof Closure && ! is_null($args[1])) {
+                return null;
+            }
+
             $result = $this->set($args[0], $args[1]);
 
             return is_string($result) || is_null($result) ? e($result) : $result;
@@ -311,6 +359,10 @@ class Seo
         if (count($args) === 1 && is_array($args[0])) {
             foreach ($args[0] as $type => $value) {
                 if (is_string($type)) {
+                    if (! is_string($value) && ! $value instanceof Closure && ! is_null($value)) {
+                        continue;
+                    }
+
                     $this->set($type, $value);
                 }
             }
@@ -350,11 +402,11 @@ class Seo
             $this->modifiers[$key] = $arguments['modify'];
         }
 
-        if (isset($arguments[0]) && (is_string($arguments[0]) || $arguments[0] instanceof Closure || is_null($arguments[0]))) {
+        if (array_key_exists(0, $arguments) && (is_string($arguments[0]) || $arguments[0] instanceof Closure || is_null($arguments[0]))) {
             $this->set($key, $arguments[0]);
         }
 
-        if (isset($arguments[0]) || isset($arguments['default']) || isset($arguments['modifier']) || isset($arguments['modify'])) {
+        if (array_key_exists(0, $arguments) || isset($arguments['default']) || isset($arguments['modifier']) || isset($arguments['modify'])) {
             return $this;
         }
 

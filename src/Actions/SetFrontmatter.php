@@ -33,7 +33,7 @@ class SetFrontmatter
         return $yaml;
     }
 
-    private function formatValue(mixed $value): mixed
+    private function formatValue(mixed $value): string
     {
         if (is_int($value) && $value > 946713600) {
             return (new Carbon($value))->toDateString();
@@ -45,8 +45,12 @@ class SetFrontmatter
             return '';
         } elseif (is_string($value) && (strpos($value, ':') !== false || strpos($value, '#') !== false)) {
             return '"'.str_replace('"', '\\"', $value).'"';
+        } elseif (is_string($value) || is_int($value) || is_float($value)) {
+            return (string) $value;
+        } elseif ($value instanceof \Stringable) {
+            return (string) $value;
         }
 
-        return $value;
+        return '';
     }
 }

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Prezet\Prezet\Data\FrontmatterData;
 use Prezet\Prezet\Database\Factories\DocumentFactory;
 
@@ -62,7 +63,7 @@ class Document extends Model
     }
 
     /**
-     * @return BelongsToMany<Tag>
+     * @return BelongsToMany<Tag, $this, Pivot, 'pivot'>
      */
     public function tags(): BelongsToMany
     {
@@ -70,7 +71,7 @@ class Document extends Model
     }
 
     /**
-     * @return HasMany<Heading>
+     * @return HasMany<Heading, $this>
      */
     public function headings(): HasMany
     {

@@ -9,7 +9,9 @@ use Illuminate\Support\Carbon;
 use Prezet\Prezet\Models\Document;
 
 /**
- * @template TModel of \Illuminate\Database\Eloquent\Model;
+ * @template TModel of \Illuminate\Database\Eloquent\Model
+ *
+ * @extends Factory<TModel>
  */
 class DocumentFactory extends Factory
 {
