@@ -14,14 +14,14 @@ test('throws exception when database missing', function () {
     unlink(Config::get('database.connections.prezet.database'));
 
     expect(fn () => Prezet::updateIndex())
-        ->toThrow(\RuntimeException::class, 'Prezet database not found');
+        ->toThrow(RuntimeException::class, 'Prezet database not found');
 });
 
 test('throws exception when documents table missing', function () {
     Schema::connection('prezet')->dropIfExists('documents');
 
     expect(fn () => Prezet::updateIndex())
-        ->toThrow(\RuntimeException::class, 'Prezet database exists but is missing the \'documents\' table');
+        ->toThrow(RuntimeException::class, 'Prezet database exists but is missing the \'documents\' table');
 });
 
 test('skips document when hash and filepath match', closure: function () {
