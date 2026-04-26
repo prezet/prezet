@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.4.0](https://github.com/benbjurstrom/prezet/compare/v1.3.0...v1.4.0) - 2026-04-26
+
+### What's Changed
+
+* Update sitemap by @benbjurstrom in https://github.com/prezet/prezet/pull/221
+* feat: add Laravel 13 support by @seebaermichi in https://github.com/prezet/prezet/pull/220
+* fix implicit conversion from float by @mkulig in https://github.com/prezet/prezet/pull/209
+* update dependencies by @benbjurstrom in https://github.com/prezet/prezet/pull/222
+* add boost skill by @benbjurstrom in https://github.com/prezet/prezet/pull/223
+
+### New Contributors
+
+* @seebaermichi made their first contribution in https://github.com/prezet/prezet/pull/220
+* @mkulig made their first contribution in https://github.com/prezet/prezet/pull/209
+
+**Full Changelog**: https://github.com/prezet/prezet/compare/v1.3.0...v1.4.0
+
 ## [v1.3.0](https://github.com/benbjurstrom/prezet/compare/v1.2.0...v1.3.0) - 2025-07-11
 
 ### What's Changed
