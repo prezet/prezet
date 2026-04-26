@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Storage;
+use Prezet\Prezet\Exceptions\FrontmatterMissingException;
 use Prezet\Prezet\Prezet;
 
 it('sets the key frontmatter', function () {
@@ -64,4 +65,4 @@ it('throws exception when frontmatter is missing', function () {
     Storage::disk('prezet')->put($filepath, $contentWithoutFrontmatter);
 
     Prezet::setKey($filepath, 'test-key');
-})->throws(\Prezet\Prezet\Exceptions\FrontmatterMissingException::class);
+})->throws(FrontmatterMissingException::class);

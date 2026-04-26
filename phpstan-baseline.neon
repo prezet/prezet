@@ -25,12 +25,6 @@ parameters:
 			path: src/Actions/ParseFrontmatter.php
 
 		-
-			message: '#^Method Prezet\\Prezet\\Actions\\ParseMarkdown\:\:getExtensions\(\) should return array\<int, League\\CommonMark\\Extension\\ExtensionInterface\> but returns array\<mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Actions/ParseMarkdown.php
-
-		-
 			message: '#^Parameter \#1 \$config of class League\\CommonMark\\Environment\\Environment constructor expects array\<string, mixed\>, array\<mixed, mixed\> given\.$#'
 			identifier: argument.type
 			count: 1
@@ -77,24 +71,6 @@ parameters:
 			identifier: binaryOp.invalid
 			count: 1
 			path: src/Exceptions/InvalidConfigurationException.php
-
-		-
-			message: '#^Method Illuminate\\View\\Component@anonymous/src/Extensions/MarkdownBladeExtension\.php\:47\:\:render\(\) never returns Closure so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: src/Extensions/MarkdownBladeExtension.php
-
-		-
-			message: '#^Method Illuminate\\View\\Component@anonymous/src/Extensions/MarkdownBladeExtension\.php\:47\:\:render\(\) never returns Illuminate\\Contracts\\Support\\Htmlable so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: src/Extensions/MarkdownBladeExtension.php
-
-		-
-			message: '#^Method Illuminate\\View\\Component@anonymous/src/Extensions/MarkdownBladeExtension\.php\:47\:\:render\(\) never returns Illuminate\\Contracts\\View\\View so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: src/Extensions/MarkdownBladeExtension.php
 
 		-
 			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
