@@ -13,12 +13,6 @@ parameters:
 			path: src/Actions/GetImage.php
 
 		-
-			message: '#^Parameter \#2 \$height of function imagecreatetruecolor expects int\<1, max\>, \(float\|int\) given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Actions/GetImage.php
-
-		-
 			message: '#^Method Prezet\\Prezet\\Actions\\ParseFrontmatter\:\:parseFrontmatter\(\) should return array\<string, mixed\> but returns array\<mixed, mixed\>\.$#'
 			identifier: return.type
 			count: 1
