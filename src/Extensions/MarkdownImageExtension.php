@@ -138,6 +138,10 @@ class MarkdownImageExtension implements ExtensionInterface
         }
 
         foreach ($allowedSizes as $size) {
+            if (! is_int($size)) {
+                throw new InvalidConfigurationException('prezet.image.widths', $allowedSizes, 'must contain only integers');
+            }
+
             $srcset[] = $this->generateImageUrl($url, $size).' '.$size.'w';
         }
 

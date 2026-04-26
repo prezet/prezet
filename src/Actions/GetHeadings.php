@@ -36,6 +36,10 @@ class GetHeadings
         }
 
         foreach ($h2Elements as $h2Element) {
+            if (! $h2Element instanceof DOMElement) {
+                continue;
+            }
+
             $children = $this->extractChildHeadings($h2Element, 'h3');
             $id = $this->generateHeadingId($h2Element->textContent);
 

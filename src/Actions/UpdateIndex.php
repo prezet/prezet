@@ -19,7 +19,7 @@ class UpdateIndex
         $docs = Prezet::getDocumentDataFromFiles();
 
         // Get all current paths from filesystem
-        $currentFiles = $docs->pluck('filepath')->toArray();
+        $currentFiles = $this->normalizePaths($docs->pluck('filepath')->all());
 
         // Remove documents that no longer exist in the filesystem
         $this->removeDeletedDocuments($currentFiles);
@@ -64,6 +64,23 @@ class UpdateIndex
             $document->tags()->detach();
             $document->delete();
         });
+    }
+
+    /**
+     * @param  array<mixed>  $paths
+     * @return array<int, string>
+     */
+    protected function normalizePaths(array $paths): array
+    {
+        $normalized = [];
+
+        foreach ($paths as $path) {
+            if (is_string($path)) {
+                $normalized[] = $path;
+            }
+        }
+
+        return $normalized;
     }
 
     protected function upsertDocument(DocumentData $docData): void

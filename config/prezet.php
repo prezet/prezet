@@ -4,7 +4,7 @@ use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
 use League\CommonMark\Extension\ExternalLink\ExternalLinkExtension;
 use League\CommonMark\Extension\FrontMatter\FrontMatterExtension;
 use League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension;
-use Phiki\CommonMark\PhikiExtension;
+use Phiki\Adapters\CommonMark\PhikiExtension;
 use Phiki\Theme\Theme;
 use Prezet\Prezet\Extensions\MarkdownBladeExtension;
 use Prezet\Prezet\Extensions\MarkdownImageExtension;
@@ -88,7 +88,6 @@ return [
             ],
             'phiki' => [
                 'theme' => Theme::NightOwl,
-                'with_wrapper' => false,
                 'with_gutter' => true,
             ],
         ],

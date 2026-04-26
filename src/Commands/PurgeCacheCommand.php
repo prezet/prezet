@@ -14,14 +14,14 @@ class PurgeCacheCommand extends Command
     public function handle(): int
     {
         $token = config('services.cloudflare.token');
-        if (! $token) {
+        if (! is_string($token) || $token === '') {
             $this->error('Cloudflare API Token not found in services.cloudflare.token.');
 
             return self::FAILURE;
         }
 
         $zoneId = config('services.cloudflare.zone_id');
-        if (! $zoneId) {
+        if (! is_string($zoneId) || $zoneId === '') {
             $this->error('Cloudflare Zone ID not found in services.cloudflare.zone_id.');
 
             return self::FAILURE;

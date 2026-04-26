@@ -20,11 +20,11 @@
         "ext-dom": "*",
         "ext-gd": "*",
         "illuminate/contracts": "^11.0||^12.0||^13.0",
-        "league/commonmark": "^2.6.1",
-        "phiki/phiki": "^1.1",
+        "league/commonmark": "^2.8.2",
+        "phiki/phiki": "^2.2",
         "spatie/laravel-package-tools": "^1.92.3",
-        "symfony/yaml": "^6.2|^7.2.5",
-        "wendelladriel/laravel-validated-dto": "^4.1"
+        "symfony/yaml": "^7.4|^8.0",
+        "wendelladriel/laravel-validated-dto": "^4.6"
     },
     "require-dev": {
         "larastan/larastan": "^3.9.6",
@@ -35,10 +35,10 @@
         "pestphp/pest-plugin-arch": "^3.1|^4.0.2",
         "pestphp/pest-plugin-laravel": "^3.1|^4.1",
         "phpstan/extension-installer": "1.4.3",
-        "phpstan/phpdoc-parser": "2.1.0",
-        "phpstan/phpstan": "^2.1.44",
-        "phpstan/phpstan-deprecation-rules": "2.0.1",
-        "phpstan/phpstan-phpunit": "2.0.6",
+        "phpstan/phpdoc-parser": "2.3.2",
+        "phpstan/phpstan": "2.1.51",
+        "phpstan/phpstan-deprecation-rules": "2.0.4",
+        "phpstan/phpstan-phpunit": "2.0.16",
         "spatie/browsershot": ">=5.0.8"
     },
     "autoload": {

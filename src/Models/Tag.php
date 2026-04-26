@@ -4,6 +4,7 @@ namespace Prezet\Prezet\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 /**
  * @property string $name
@@ -37,7 +38,7 @@ class Tag extends Model
     }
 
     /**
-     * @return BelongsToMany<Document>
+     * @return BelongsToMany<Document, $this, Pivot, 'pivot'>
      */
     public function documents(): BelongsToMany
     {

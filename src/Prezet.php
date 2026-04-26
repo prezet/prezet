@@ -77,7 +77,7 @@ class Prezet
     }
 
     /**
-     * @return array<string, string|array<string, string>>
+     * @return array<string, string|array<string, string>|array<string, string|array<string, string>>>
      */
     public static function getLinkedData(DocumentData $document): array
     {
