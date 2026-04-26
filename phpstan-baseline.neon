@@ -25,12 +25,6 @@ parameters:
 			path: src/Actions/ParseFrontmatter.php
 
 		-
-			message: '#^Method Prezet\\Prezet\\Actions\\ParseMarkdown\:\:getExtensions\(\) should return array\<int, League\\CommonMark\\Extension\\ExtensionInterface\> but returns array\<mixed\>\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Actions/ParseMarkdown.php
-
-		-
 			message: '#^Parameter \#1 \$config of class League\\CommonMark\\Environment\\Environment constructor expects array\<string, mixed\>, array\<mixed, mixed\> given\.$#'
 			identifier: argument.type
 			count: 1

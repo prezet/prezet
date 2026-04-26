@@ -1,5 +1,14 @@
 <?php
 
+use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
+use League\CommonMark\Extension\ExternalLink\ExternalLinkExtension;
+use League\CommonMark\Extension\FrontMatter\FrontMatterExtension;
+use League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension;
+use Phiki\CommonMark\PhikiExtension;
+use Phiki\Theme\Theme;
+use Prezet\Prezet\Extensions\MarkdownBladeExtension;
+use Prezet\Prezet\Extensions\MarkdownImageExtension;
+
 return [
     /*
     |--------------------------------------------------------------------------
@@ -46,13 +55,13 @@ return [
     'commonmark' => [
 
         'extensions' => [
-            League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension::class,
-            League\CommonMark\Extension\HeadingPermalink\HeadingPermalinkExtension::class,
-            League\CommonMark\Extension\ExternalLink\ExternalLinkExtension::class,
-            League\CommonMark\Extension\FrontMatter\FrontMatterExtension::class,
-            Prezet\Prezet\Extensions\MarkdownBladeExtension::class,
-            Prezet\Prezet\Extensions\MarkdownImageExtension::class,
-            Phiki\CommonMark\PhikiExtension::class,
+            CommonMarkCoreExtension::class,
+            HeadingPermalinkExtension::class,
+            ExternalLinkExtension::class,
+            FrontMatterExtension::class,
+            MarkdownBladeExtension::class,
+            MarkdownImageExtension::class,
+            PhikiExtension::class,
         ],
 
         'config' => [
@@ -78,7 +87,7 @@ return [
                 'noreferrer' => 'external',
             ],
             'phiki' => [
-                'theme' => \Phiki\Theme\Theme::NightOwl,
+                'theme' => Theme::NightOwl,
                 'with_wrapper' => false,
                 'with_gutter' => true,
             ],

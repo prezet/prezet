@@ -4,8 +4,7 @@ namespace Prezet\Prezet\Actions;
 
 use Illuminate\Support\Facades\Route;
 use Prezet\Prezet\Models\Document;
-use Spatie\Sitemap\Sitemap;
-use Spatie\Sitemap\Tags\Url;
+use Prezet\Prezet\Services\Sitemap;
 
 class UpdateSitemap
 {
@@ -26,11 +25,10 @@ class UpdateSitemap
             }
 
             $sitemapUrl = config('prezet.sitemap.origin');
-            $sitemap->add(Url::create($sitemapUrl.route('prezet.show', $doc->slug, false))
+            $sitemap->add(Sitemap::url($sitemapUrl.route('prezet.show', $doc->slug, false))
                 ->setLastModificationDate($doc->updated_at)
-                ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                ->setChangeFrequency(Sitemap::CHANGE_FREQUENCY_WEEKLY)
                 ->setPriority(0.7)
-                // ->addVideo($post->video)
             );
         }
 

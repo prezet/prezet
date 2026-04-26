@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Storage;
+use Prezet\Prezet\Exceptions\FrontmatterMissingException;
 use Prezet\Prezet\Models\Document;
 use Prezet\Prezet\Prezet;
 
@@ -44,4 +45,4 @@ it('throws exception when frontmatter is missing', function () {
     ]);
 
     Prezet::setOgImage($doc, 'test-image.jpg');
-})->throws(\Prezet\Prezet\Exceptions\FrontmatterMissingException::class);
+})->throws(FrontmatterMissingException::class);

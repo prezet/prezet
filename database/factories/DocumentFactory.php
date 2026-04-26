@@ -2,6 +2,7 @@
 
 namespace Prezet\Prezet\Database\Factories;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -51,7 +52,7 @@ class DocumentFactory extends Factory
      * Create a collection of models and persist them to the database.
      *
      * @param  (callable(array<string, mixed>): array<string, mixed>)|array<string, mixed>  $attributes
-     * @return \Illuminate\Database\Eloquent\Collection<int, TModel>|TModel
+     * @return Collection<int, TModel>|TModel
      */
     public function create($attributes = [], ?Model $parent = null)
     {

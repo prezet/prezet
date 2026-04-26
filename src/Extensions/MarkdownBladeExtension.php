@@ -4,6 +4,7 @@ namespace Prezet\Prezet\Extensions;
 
 use Illuminate\Container\Container;
 use Illuminate\Contracts\View\Factory as ViewFactory;
+use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 use League\CommonMark\Environment\EnvironmentBuilderInterface;
 use League\CommonMark\Event\DocumentRenderedEvent;
@@ -42,7 +43,7 @@ class MarkdownBladeExtension implements ExtensionInterface, NodeRendererInterfac
         return null;
     }
 
-    public function getView(string $string): \Illuminate\Contracts\View\View
+    public function getView(string $string): View
     {
         $component = new class($string) extends Component
         {
