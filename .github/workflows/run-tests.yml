@@ -4,21 +4,20 @@ on: ['push', 'pull_request']
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
     timeout-minutes: 5
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest]
-        php: [8.3]
-        laravel: [11.*]
-        stability: [prefer-stable]
-        include:
-          - laravel: 11.*
-            testbench: 9.*
-            carbon: ^2.63
+        php: [8.2, 8.3, 8.4, 8.5]
+        laravel: [11, 12, 13]
+        exclude:
+          - php: 8.5
+            laravel: 11
+          - php: 8.2
+            laravel: 13
 
-    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
     steps:
       - name: Checkout code
@@ -29,6 +28,8 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
           coverage: none
 
       - name: Setup problem matchers
@@ -37,12 +38,10 @@ jobs:
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
       - name: Install dependencies
-        run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" "nesbot/carbon:${{ matrix.carbon }}" --no-interaction --no-update
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+        run: composer update --prefer-dist --no-interaction --no-progress --with="laravel/framework=^${{ matrix.laravel }}"
 
       - name: List Installed Dependencies
         run: composer show -D
 
       - name: Execute tests
-        run: vendor/bin/pest --ci
+        run: vendor/bin/pest --ci --no-coverage

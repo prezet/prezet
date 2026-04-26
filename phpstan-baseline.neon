@@ -73,24 +73,6 @@ parameters:
 			path: src/Exceptions/InvalidConfigurationException.php
 
 		-
-			message: '#^Method Illuminate\\View\\Component@anonymous/src/Extensions/MarkdownBladeExtension\.php\:47\:\:render\(\) never returns Closure so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: src/Extensions/MarkdownBladeExtension.php
-
-		-
-			message: '#^Method Illuminate\\View\\Component@anonymous/src/Extensions/MarkdownBladeExtension\.php\:47\:\:render\(\) never returns Illuminate\\Contracts\\Support\\Htmlable so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: src/Extensions/MarkdownBladeExtension.php
-
-		-
-			message: '#^Method Illuminate\\View\\Component@anonymous/src/Extensions/MarkdownBladeExtension\.php\:47\:\:render\(\) never returns Illuminate\\Contracts\\View\\View so it can be removed from the return type\.$#'
-			identifier: return.unusedType
-			count: 1
-			path: src/Extensions/MarkdownBladeExtension.php
-
-		-
 			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
 			identifier: binaryOp.invalid
 			count: 1

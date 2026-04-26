@@ -54,7 +54,7 @@ class MarkdownBladeExtension implements ExtensionInterface, NodeRendererInterfac
                 $this->template = $template;
             }
 
-            public function render()
+            public function render(): string
             {
                 return $this->template;
             }

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
@@ -9,6 +10,7 @@ Route::withoutMiddleware([
     ShareErrorsFromSession::class,
     StartSession::class,
     VerifyCsrfToken::class,
+    PreventRequestForgery::class,
 ])
     ->group(function () {
         Route::get('prezet/search', function () {})->name('prezet.search');
