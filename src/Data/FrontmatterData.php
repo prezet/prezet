@@ -49,7 +49,7 @@ class FrontmatterData extends ValidatedDTO
     public array $tags;
 
     /**
-     * @return array<string, array<int, null>|false>
+     * @return array{tags: array<int, string>, draft: false, contentType: 'article'}
      */
     protected function defaults(): array
     {
